@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listing Checker — Overview</title>
+<script src="data.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+:root {
+  --bg:#0d0e11; --surface:#14161b; --surface2:#191c22; --border:#1f2229; --muted:#3a3f4b;
+  --text:#c8cdd8; --dim:#6b7280; --amber:#f59e0b; --green:#22c55e;
+  --red:#ef4444; --blue:#3b82f6; --purple:#a78bfa;
+  --mono:'Space Mono',monospace; --sans:'Syne',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");opacity:0.4}
+.app{position:relative;z-index:1;max-width:1600px;margin:0 auto;padding:0 24px 80px}
+
+/* ── Header ── */
+header{border-bottom:1px solid var(--border);padding:22px 0 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-dot{width:10px;height:10px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px var(--amber);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.logo h1{font-size:18px;font-weight:800;letter-spacing:-0.02em;color:#fff}
+.logo h1 span{color:var(--amber)}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.last-updated{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.btn{font-family:var(--mono);font-size:11px;background:transparent;border:1px solid var(--muted);color:var(--text);padding:6px 14px;border-radius:4px;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--amber);color:var(--amber)}
+
+/* ── Stats strip ── */
+.stats-strip{display:flex;gap:28px;flex-wrap:wrap;padding:18px 0 22px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat-val{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}
+.stat-val.amber{color:var(--amber)}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.08em}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:12px}
+
+/* ── Toolbar ── */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.search-wrap{position:relative;flex:1;min-width:220px}
+.search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:9px 12px 9px 34px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;transition:border-color .15s}
+.search-wrap input:focus{border-color:var(--amber)}
+.search-wrap input::placeholder{color:var(--dim)}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--dim);font-size:13px;pointer-events:none}
+.sort-select{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:9px 12px;font-family:var(--mono);font-size:12px;color:var(--text);outline:none;cursor:pointer}
+.hint-text{font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ── Table ── */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:8px}
+table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+thead{background:#0f1115}
+th{text-align:left;padding:11px 14px;color:var(--dim);font-weight:400;letter-spacing:.06em;font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+th:hover{color:var(--amber)}
+th.no-sort{cursor:default}
+th.no-sort:hover{color:var(--dim)}
+th .sort-arrow{margin-left:4px;opacity:.4}
+th.sorted .sort-arrow{opacity:1;color:var(--amber)}
+
+tbody tr.data-row{border-bottom:1px solid var(--border);cursor:pointer;transition:background .12s}
+tbody tr.data-row:hover{background:rgba(245,158,11,.03)}
+tbody tr.data-row.expanded{background:rgba(245,158,11,.05);border-bottom:none}
+td{padding:11px 14px;vertical-align:middle}
+
+/* expand chevron cell */
+.expand-toggle{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:4px;border:1px solid var(--border);color:var(--dim);font-size:10px;transition:all .15s;flex-shrink:0}
+tr.expanded .expand-toggle{border-color:var(--amber);color:var(--amber);background:rgba(245,158,11,.08)}
+
+/* ── Expanded row panel ── */
+tbody tr.expand-row{border-bottom:1px solid var(--border)}
+tbody tr.expand-row td{padding:0;overflow:hidden}
+.expand-panel{background:var(--surface2);border-top:2px solid var(--amber);padding:0;max-height:0;overflow:hidden;transition:max-height .3s ease, padding .3s ease}
+.expand-panel.open{max-height:1200px;padding:22px 28px 26px}
+
+.expand-title{font-family:var(--sans);font-size:14px;font-weight:700;color:#fff;line-height:1.5;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.expand-title-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:5px}
+
+.expand-grid{display:grid;grid-template-columns:2fr 1fr;gap:24px}
+@media(max-width:800px){.expand-grid{grid-template-columns:1fr}}
+.expand-section h4{font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+
+/* bullet list */
+.bullet-list{list-style:none;display:flex;flex-direction:column;gap:8px}
+.bullet-list li{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--text);line-height:1.55;font-family:var(--sans)}
+.bullet-num{font-family:var(--mono);font-size:10px;color:var(--amber);flex-shrink:0;width:18px;padding-top:2px}
+
+/* spec table inside panel */
+.mini-spec-table{width:100%;border-collapse:collapse}
+.mini-spec-table tr{border-bottom:1px solid var(--border)}
+.mini-spec-table tr:last-child{border-bottom:none}
+.mini-spec-table td{padding:7px 0;font-size:11px;vertical-align:top}
+.mini-spec-table td:first-child{color:var(--dim);font-family:var(--mono);font-size:10px;width:48%;padding-right:10px;line-height:1.4}
+.mini-spec-table td:last-child{color:var(--text);font-family:var(--mono)}
+
+.expand-empty{font-family:var(--mono);font-size:11px;color:var(--muted);font-style:italic}
+
+/* ── Cell styles ── */
+.asin-code{color:var(--amber);font-weight:700;letter-spacing:.03em}
+.title-cell{max-width:200px}
+.title-text{color:var(--text);font-family:var(--sans);font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.brand-text{color:var(--dim);font-size:10px;margin-top:1px}
+.price-val{color:#fff;font-weight:700}
+.price-orig{color:var(--dim);text-decoration:line-through;font-size:10px;display:block}
+.discount{color:var(--green);font-size:10px}
+.delta-up{color:var(--green)} .delta-down{color:var(--red)}
+.rating-wrap{display:flex;align-items:center;gap:5px}
+.stars{color:var(--amber);letter-spacing:-1px;font-size:11px}
+.review-count{color:var(--dim);font-size:10px;display:block;margin-top:2px}
+.bsr-val{color:var(--blue);display:block}
+.bsr-cat{color:var(--dim);font-size:10px;display:block;max-width:130px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.avail-row{display:flex;align-items:center}
+.avail-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;flex-shrink:0}
+.avail-dot.green{background:var(--green);box-shadow:0 0 5px var(--green)}
+.avail-dot.red{background:var(--red);box-shadow:0 0 5px var(--red)}
+.avail-dot.grey{background:var(--muted)}
+.avail-text{font-size:11px}
+.stock-hint{font-size:10px;color:var(--red);margin-top:3px}
+.dim-val{font-size:11px;color:var(--text);max-width:140px;line-height:1.5}
+.dim-na{color:var(--muted);font-style:italic;font-size:11px}
+.bullets-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);padding:3px 9px;border-radius:12px;font-size:10px;white-space:nowrap}
+.open-btn{background:transparent;border:1px solid var(--muted);color:var(--dim);padding:4px 10px;border-radius:4px;font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.open-btn:hover{border-color:var(--amber);color:var(--amber)}
+.thumb{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:3px;display:block}
+.no-thumb{width:42px;height:42px;background:var(--border);border-radius:3px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:16px}
+
+.empty{text-align:center;padding:80px 20px;font-family:var(--mono);color:var(--dim);font-size:13px;line-height:2}
+.empty strong{color:var(--amber);display:block;font-size:18px;margin-bottom:12px}
+footer{margin-top:48px;border-top:1px solid var(--border);padding-top:18px;font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>Listing <span>Checker</span></h1>
+    </div>
+    <div class="header-right">
+      <span class="last-updated" id="lastUpdated">—</span>
+      <button class="btn" onclick="location.reload()">↺ Refresh</button>
+    </div>
+  </header>
+
+  <div id="app-root"></div>
+
+  <footer>
+    <span>Listing Checker — amazon.in</span>
+    <span id="footerInfo">—</span>
+  </footer>
+</div>
+
+<script>
+let DATA;
+try { DATA = LISTING_DATA; } catch(e) { DATA = null; }
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+const fmt = {
+  price: v  => v != null ? '₹' + Number(v).toLocaleString('en-IN',{maximumFractionDigits:0}) : '—',
+  pct:   v  => v != null ? Number(v).toFixed(0)+'%' : '',
+  rank:  v  => v != null ? '#'+Number(v).toLocaleString() : '—',
+  num:   v  => v != null ? Number(v).toLocaleString() : '—',
+  dt:    s  => { try{return new Date(s).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'})}catch{return s} },
+  ago:   s  => {
+    try{
+      const d=Math.floor((Date.now()-new Date(s))/1000);
+      if(d<60) return d+'s ago';
+      if(d<3600) return Math.floor(d/60)+'m ago';
+      if(d<86400) return Math.floor(d/3600)+'h ago';
+      return Math.floor(d/86400)+'d ago';
+    }catch{return '—'}
+  }
+};
+
+function starsHtml(r){
+  if(!r) return '<span style="color:var(--dim)">—</span>';
+  const f=Math.floor(r),h=r-f>=0.5?1:0,e=5-f-h;
+  return '★'.repeat(f)+(h?'½':'')+'☆'.repeat(e);
+}
+
+function availInfo(txt){
+  if(!txt) return {cls:'grey',short:'Unknown'};
+  const l=txt.toLowerCase();
+  if(l.includes('in stock')||l.includes('available')) return {cls:'green',short:'In Stock'};
+  if(l.includes('out of stock')||l.includes('unavailable')) return {cls:'red',short:'Out of Stock'};
+  if(l.includes('captcha')) return {cls:'red',short:'CAPTCHA'};
+  return {cls:'grey',short:txt.substring(0,16)};
+}
+
+function latestRecord(listing){
+  const v=listing.records.filter(r=>!r.captcha_hit);
+  return v.length?v[v.length-1]:listing.records[listing.records.length-1];
+}
+
+function prevRecord(listing){
+  const v=listing.records.filter(r=>!r.captcha_hit);
+  return v.length>1?v[v.length-2]:null;
+}
+
+function priceDelta(listing){
+  const c=latestRecord(listing),p=prevRecord(listing);
+  if(!c||!p||c.price==null||p.price==null) return '';
+  const d=c.price-p.price;
+  if(Math.abs(d)<0.5) return '';
+  return ` <span class="${d>0?'delta-up':'delta-down'}">${d>0?'↑':'↓'}₹${Math.abs(d).toLocaleString('en-IN',{maximumFractionDigits:0})}</span>`;
+}
+
+// Extract a value from tech_specs by keyword matching on key names
+function extractSpec(specs, ...keywords){
+  if(!specs||typeof specs!=='object') return null;
+  for(const key of Object.keys(specs)){
+    const kl=key.toLowerCase();
+    if(keywords.some(kw=>kl.includes(kw.toLowerCase()))) return specs[key];
+  }
+  return null;
+}
+
+function getDimensions(r){
+  const s=(typeof r.tech_specs==='object'&&!Array.isArray(r.tech_specs))?r.tech_specs:{};
+  return extractSpec(s,'item dimensions','product dimensions','package dimensions','dimensions','item size') || null;
+}
+
+function getMaxWeight(r){
+  const s=(typeof r.tech_specs==='object'&&!Array.isArray(r.tech_specs))?r.tech_specs:{};
+  // Try max weight first, then fall back to item weight
+  return extractSpec(s,'maximum weight recommendation','maximum weight','max weight','weight recommendation','maximum load','max load')
+      || extractSpec(s,'item weight','product weight','net weight','weight')
+      || null;
+}
+
+// Pull all dimension + weight related keys for the expanded panel
+function getDimWeightSpecs(r){
+  const s=(typeof r.tech_specs==='object'&&!Array.isArray(r.tech_specs))?r.tech_specs:{};
+  const KEYS=['dimension','size','weight','measurement','height','width','depth','length','capacity','volume'];
+  return Object.entries(s).filter(([k])=>{
+    const kl=k.toLowerCase();
+    return KEYS.some(kw=>kl.includes(kw));
+  });
+}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let sortKey='asin', sortDir=1, filterText='', expandedAsin=null;
+const TOTAL_COLS = 13;
+
+// ── Render ────────────────────────────────────────────────────────────────────
+function render(){
+  const root=document.getElementById('app-root');
+
+  if(!DATA||!DATA.listings||!DATA.asins||DATA.asins.length===0){
+    root.innerHTML=`<div class="empty"><strong>No data yet</strong>1. Add ASINs to <code>asins.txt</code><br>2. Run <code>python3 scraper.py</code><br>3. Refresh this page</div>`;
+    return;
+  }
+
+  document.getElementById('lastUpdated').textContent='Updated '+fmt.dt(DATA.exported_at);
+  const totalScrapes=DATA.asins.reduce((s,a)=>s+(DATA.listings[a]?.scrape_count||0),0);
+  document.getElementById('footerInfo').textContent=`${DATA.asins.length} ASINs · ${totalScrapes} total scrapes`;
+
+  const allLatest=DATA.asins.map(a=>latestRecord(DATA.listings[a])).filter(Boolean);
+  const avgRating=allLatest.filter(r=>r.rating).reduce((s,r,_,a)=>s+r.rating/a.length,0);
+  const inStock=allLatest.filter(r=>(r.availability||'').toLowerCase().includes('in stock')).length;
+
+  let rows=DATA.asins.map(asin=>({asin,listing:DATA.listings[asin],r:latestRecord(DATA.listings[asin])}));
+
+  if(filterText){
+    const q=filterText.toLowerCase();
+    rows=rows.filter(({asin,r})=>
+      asin.toLowerCase().includes(q)||
+      (r?.title||'').toLowerCase().includes(q)||
+      (r?.brand||'').toLowerCase().includes(q)
+    );
+  }
+
+  rows.sort((a,b)=>{
+    let va,vb;
+    switch(sortKey){
+      case 'asin':    va=a.asin;vb=b.asin;break;
+      case 'price':   va=a.r?.price??Infinity;vb=b.r?.price??Infinity;break;
+      case 'rating':  va=a.r?.rating??0;vb=b.r?.rating??0;break;
+      case 'reviews': va=a.r?.rating_count??0;vb=b.r?.rating_count??0;break;
+      case 'bsr':     va=a.r?.bsr_rank??Infinity;vb=b.r?.bsr_rank??Infinity;break;
+      default:        va=a.asin;vb=b.asin;
+    }
+    if(typeof va==='string') return va.localeCompare(vb)*sortDir;
+    return (va-vb)*sortDir;
+  });
+
+  const mkTh=(label,key)=>{
+    if(!key) return `<th class="no-sort">${label}</th>`;
+    const s=sortKey===key?'sorted':'';
+    const a=sortKey===key?(sortDir===1?'↑':'↓'):'↕';
+    return `<th class="${s}" onclick="setSort('${key}')">${label}<span class="sort-arrow">${a}</span></th>`;
+  };
+
+  const thHtml=[
+    mkTh('',''),mkTh('',''),mkTh('ASIN','asin'),
+    mkTh('Title',''),mkTh('Price','price'),
+    mkTh('Rating','rating'),mkTh('Reviews','reviews'),
+    mkTh('BSR','bsr'),mkTh('Availability',''),
+    mkTh('Dimensions',''),mkTh('Weight',''),
+    mkTh('Bullets',''),mkTh('',''),
+  ].join('');
+
+  const rowsHtml=rows.map(({asin,listing,r})=>{
+    if(!r) return '';
+
+    const img=(Array.isArray(r.images)&&r.images.length)?r.images[0]:null;
+    const thumbHtml=img
+      ?`<img class="thumb" src="${img}" alt="" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'no-thumb\\'>📦</div>'">`
+      :`<div class="no-thumb">📦</div>`;
+
+    const avail    = availInfo(r.availability);
+    const dims     = getDimensions(r);
+    const weight   = getMaxWeight(r);
+    const bullets  = Array.isArray(r.bullet_points)?r.bullet_points:[];
+    const dimSpecs = getDimWeightSpecs(r);
+    const isOpen   = expandedAsin===asin;
+
+    // ── Expanded panel ──
+    const bulletsHtml = bullets.length
+      ?`<ul class="bullet-list">${bullets.map((b,i)=>`<li><span class="bullet-num">${i+1}.</span>${escHtml(b)}</li>`).join('')}</ul>`
+      :`<span class="expand-empty">No bullet points captured yet</span>`;
+
+    const dimSpecsHtml = dimSpecs.length
+      ?`<table class="mini-spec-table">${dimSpecs.map(([k,v])=>`<tr><td>${escHtml(k)}</td><td>${escHtml(v)}</td></tr>`).join('')}</table>`
+      :`<span class="expand-empty">Dimensions & weight not captured yet</span>`;
+
+    const expandPanel=`
+      <div class="expand-panel${isOpen?' open':''}" id="ep_${asin}">
+        <span class="expand-title-label">Full Title</span>
+        <div class="expand-title">${escHtml(r.title||'—')}</div>
+        <div class="expand-grid">
+          <div class="expand-section">
+            <h4>Bullet Points (${bullets.length})</h4>
+            ${bulletsHtml}
+          </div>
+          <div class="expand-section">
+            <h4>Dimensions &amp; Weight</h4>
+            ${dimSpecsHtml}
+          </div>
+        </div>
+      </div>`;
+
+    return `
+      <tr class="data-row${isOpen?' expanded':''}" onclick="toggleExpand('${asin}',event)">
+        <td><div class="expand-toggle">${isOpen?'▼':'▶'}</div></td>
+        <td>${thumbHtml}</td>
+        <td><span class="asin-code">${asin}</span></td>
+        <td class="title-cell">
+          <span class="title-text" title="${escAttr(r.title||'')}">${escHtml(r.title||'—')}</span>
+          <span class="brand-text">${escHtml(r.brand||'')}</span>
+        </td>
+        <td>
+          <span class="price-val">${fmt.price(r.price)}</span>
+          ${r.original_price?`<span class="price-orig">${fmt.price(r.original_price)}</span>`:''}
+          ${r.discount_pct>0?`<span class="discount">-${fmt.pct(r.discount_pct)}</span>`:''}
+          ${priceDelta(listing)}
+        </td>
+        <td>
+          <div class="rating-wrap">
+            <span class="stars">${starsHtml(r.rating)}</span>
+            <span>${r.rating??'—'}</span>
+          </div>
+          <span class="review-count">${fmt.num(r.rating_count)} reviews</span>
+        </td>
+        <td>${fmt.num(r.rating_count)}</td>
+        <td>
+          <span class="bsr-val">${fmt.rank(r.bsr_rank)}</span>
+          <span class="bsr-cat" title="${escAttr(r.bsr_category||'')}">${escHtml((r.bsr_category||'').substring(0,34))}</span>
+        </td>
+        <td>
+          <div class="avail-row">
+            <span class="avail-dot ${avail.cls}"></span>
+            <span class="avail-text">${avail.short}</span>
+          </div>
+          ${r.stock_hint?`<div class="stock-hint">${escHtml(r.stock_hint)}</div>`:''}
+        </td>
+        <td class="dim-val">
+          ${dims?escHtml(dims):`<span class="dim-na">—</span>`}
+        </td>
+        <td class="dim-val">
+          ${weight?escHtml(weight):`<span class="dim-na">—</span>`}
+        </td>
+        <td>
+          ${bullets.length
+            ?`<span class="bullets-chip">▸ ${bullets.length} bullets</span>`
+            :`<span class="dim-na">—</span>`}
+        </td>
+        <td>
+          <button class="open-btn" onclick="event.stopPropagation();location.href='dashboard.html?asin=${asin}'">View →</button>
+        </td>
+      </tr>
+      <tr class="expand-row">
+        <td colspan="${TOTAL_COLS}">${expandPanel}</td>
+      </tr>`;
+  }).join('');
+
+  root.innerHTML=`
+    <div class="stats-strip">
+      <div class="stat"><span class="stat-val amber">${DATA.asins.length}</span><span class="stat-label">ASINs Tracked</span></div>
+      <div class="stat"><span class="stat-val">${totalScrapes.toLocaleString()}</span><span class="stat-label">Total Scrapes</span></div>
+      <div class="stat"><span class="stat-val">${avgRating?avgRating.toFixed(1):'—'}</span><span class="stat-label">Avg Rating</span></div>
+      <div class="stat"><span class="stat-val">${inStock} / ${DATA.asins.length}</span><span class="stat-label">In Stock</span></div>
+    </div>
+    <div class="section-label">All Listings</div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input type="text" placeholder="Search ASIN, title or brand…"
+          oninput="filterText=this.value;render()" value="${filterText}">
+      </div>
+      <select class="sort-select" onchange="setSort(this.value)">
+        <option value="asin"    ${sortKey==='asin'   ?'selected':''}>Sort: ASIN</option>
+        <option value="price"   ${sortKey==='price'  ?'selected':''}>Sort: Price</option>
+        <option value="rating"  ${sortKey==='rating' ?'selected':''}>Sort: Rating</option>
+        <option value="reviews" ${sortKey==='reviews'?'selected':''}>Sort: Reviews</option>
+        <option value="bsr"     ${sortKey==='bsr'    ?'selected':''}>Sort: BSR Rank</option>
+      </select>
+      <span class="hint-text">▶ Click any row to expand bullet points, dimensions &amp; full title</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr>${thHtml}</tr></thead>
+        <tbody>${rowsHtml||`<tr><td colspan="${TOTAL_COLS}" style="text-align:center;padding:40px;color:var(--dim);font-family:var(--mono)">No results</td></tr>`}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── Expand toggle ─────────────────────────────────────────────────────────────
+function toggleExpand(asin,e){
+  if(e.target.classList.contains('open-btn')||e.target.closest('.open-btn')) return;
+  expandedAsin=(expandedAsin===asin)?null:asin;
+  render();
+  if(expandedAsin){
+    setTimeout(()=>{
+      const el=document.getElementById('ep_'+asin);
+      if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+    },60);
+  }
+}
+
+function setSort(key){
+  if(sortKey===key) sortDir*=-1; else{sortKey=key;sortDir=1;}
+  render();
+}
+
+// ── Safety helpers ────────────────────────────────────────────────────────────
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s){
+  return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+render();
+</script>
+</body>
+</html>

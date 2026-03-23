@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Listing Checker — Detail</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="data.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg:      #0d0e11; --surface: #14161b; --border:  #1f2229; --muted: #3a3f4b;
+  --text:    #c8cdd8; --dim:    #6b7280;  --amber:   #f59e0b;
+  --green:   #22c55e; --red:    #ef4444;  --blue:    #3b82f6;
+  --mono: 'Space Mono', monospace; --sans: 'Syne', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
+body::before {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: 0.4;
+}
+.app { position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; }
+
+header {
+  border-bottom: 1px solid var(--border); padding: 28px 0 22px;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 10px var(--amber); animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.8)} }
+.logo h1 { font-family: var(--sans); font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #fff; }
+.logo h1 span { color: var(--amber); }
+.asin-badge { font-family: var(--mono); font-size: 12px; background: var(--border); border: 1px solid var(--muted); padding: 4px 10px; border-radius: 4px; color: var(--amber); }
+.header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.last-updated { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.btn { font-family: var(--mono); font-size: 11px; background: transparent; border: 1px solid var(--muted); color: var(--text); padding: 6px 14px; border-radius: 4px; cursor: pointer; transition: all .15s; text-decoration: none; }
+.btn:hover { border-color: var(--amber); color: var(--amber); }
+.back-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+.section-label { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--dim); text-transform: uppercase; margin-bottom: 12px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1px; border: 1px solid var(--border); background: var(--border); border-radius: 8px; overflow: hidden; margin: 28px 0 32px; }
+.kpi { background: var(--surface); padding: 20px 22px; display: flex; flex-direction: column; gap: 4px; transition: background .2s; }
+.kpi:hover { background: #1a1d24; }
+.kpi-label { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: .08em; text-transform: uppercase; }
+.kpi-value { font-family: var(--mono); font-size: 26px; font-weight: 700; color: #fff; line-height: 1.1; }
+.kpi-value.amber { color: var(--amber); }
+.kpi-value.green { color: var(--green); }
+.kpi-value.red   { color: var(--red); }
+.kpi-sub  { font-family: var(--mono); font-size: 11px; color: var(--dim); }
+.kpi-delta { font-family: var(--mono); font-size: 11px; }
+.kpi-delta.up { color: var(--green); } .kpi-delta.down { color: var(--red); }
+
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 860px) { .charts-grid { grid-template-columns: 1fr; } }
+.chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px 22px 18px; }
+.chart-title { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.chart-subtitle { font-family: var(--mono); font-size: 10px; color: var(--dim); margin-bottom: 16px; }
+.chart-container { position: relative; height: 200px; }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+.info-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; }
+.info-card h3 { font-size: 13px; font-weight: 700; color: #fff; margin-bottom: 14px; }
+
+.image-strip { display: flex; gap: 8px; flex-wrap: wrap; }
+.image-strip img { width: 70px; height: 70px; object-fit: contain; background: #fff; border-radius: 4px; border: 1px solid var(--border); }
+
+.bullet-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.bullet-list li { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; }
+.bullet-list li::before { content: '▸'; color: var(--amber); flex-shrink: 0; margin-top: 1px; }
+
+.spec-table { width: 100%; border-collapse: collapse; }
+.spec-table tr { border-bottom: 1px solid var(--border); }
+.spec-table tr:last-child { border-bottom: none; }
+.spec-table td { padding: 7px 0; font-size: 12px; vertical-align: top; }
+.spec-table td:first-child { color: var(--dim); font-family: var(--mono); font-size: 11px; width: 45%; padding-right: 12px; }
+
+.star-bars { display: flex; flex-direction: column; gap: 6px; }
+.star-row { display: flex; align-items: center; gap: 8px; }
+.star-label { font-family: var(--mono); font-size: 11px; color: var(--dim); width: 28px; flex-shrink: 0; }
+.star-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+.star-fill  { height: 100%; background: var(--amber); border-radius: 3px; }
+.star-pct   { font-family: var(--mono); font-size: 10px; color: var(--dim); width: 28px; text-align: right; }
+
+.avail-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 4px; font-family: var(--mono); font-size: 12px; }
+.avail-badge.in-stock  { background: rgba(34,197,94,.12); color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+.avail-badge.out-stock { background: rgba(239,68,68,.12); color: var(--red); border: 1px solid rgba(239,68,68,.25); }
+.avail-badge.unknown   { background: rgba(107,114,128,.15); color: var(--dim); border: 1px solid var(--muted); }
+.avail-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+.log-wrap { margin-top: 24px; overflow-x: auto; }
+.log-table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11px; }
+.log-table th { text-align: left; padding: 8px 10px; color: var(--dim); font-weight: 400; letter-spacing: .06em; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.log-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.log-table tr:last-child td { border-bottom: none; }
+.log-table tr:hover td { background: rgba(255,255,255,.02); }
+.tag-prime   { background: rgba(59,130,246,.15); color: var(--blue); border: 1px solid rgba(59,130,246,.3); padding: 1px 6px; border-radius: 3px; font-size: 10px; }
+.tag-captcha { background: rgba(239,68,68,.15); color: var(--red); border: 1px solid rgba(239,68,68,.3); padding: 1px 6px; border-radius: 3px; font-size: 10px; }
+
+.empty { text-align: center; padding: 80px 20px; font-family: var(--mono); color: var(--dim); font-size: 13px; line-height: 2; }
+.empty strong { color: var(--amber); display: block; font-size: 18px; margin-bottom: 12px; }
+
+footer { margin-top: 48px; border-top: 1px solid var(--border); padding-top: 18px; font-family: var(--mono); font-size: 10px; color: var(--muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>Listing <span>Checker</span></h1>
+    </div>
+    <div class="header-right">
+      <span class="asin-badge" id="asinBadge">—</span>
+      <span class="last-updated" id="lastUpdated">—</span>
+      <a href="index.html" class="btn back-btn">← All Listings</a>
+      <button class="btn" onclick="location.reload()">↺ Refresh</button>
+    </div>
+  </header>
+
+  <div id="app-root"></div>
+
+  <footer>
+    <span>Listing Checker — amazon.in</span>
+    <span id="footerCount">—</span>
+  </footer>
+</div>
+
+<script>
+// ── Resolve ASIN from URL ────────────────────────────────────────────────────
+const urlAsin = new URLSearchParams(window.location.search).get('asin');
+
+let DATA;
+try { DATA = LISTING_DATA; } catch(e) { DATA = null; }
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+const fmt = {
+  price: v  => v != null ? '₹' + Number(v).toLocaleString('en-IN', {maximumFractionDigits:0}) : '—',
+  pct:   v  => v != null ? Number(v).toFixed(1) + '%' : '—',
+  rank:  v  => v != null ? '#' + Number(v).toLocaleString() : '—',
+  num:   v  => v != null ? Number(v).toLocaleString() : '—',
+  dt:    s  => { try { return new Date(s).toLocaleString('en-IN'); } catch { return s; } },
+  dtShort: s => { try { return new Date(s).toLocaleDateString('en-IN',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}); } catch { return s; } },
+};
+
+function delta(records, field) {
+  const vals = records.filter(r => r[field] != null);
+  if (vals.length < 2) return null;
+  return { prev: vals[vals.length-2][field], curr: vals[vals.length-1][field] };
+}
+function deltaHTML(d, higher_is_bad=false) {
+  if (!d) return '';
+  const diff = d.curr - d.prev;
+  if (Math.abs(diff) < 0.001) return '<span class="kpi-delta">→ no change</span>';
+  const up = diff > 0;
+  const bad = higher_is_bad ? up : !up;
+  return `<span class="kpi-delta ${bad?'down':'up'}">${up?'↑':'↓'} ${Math.abs(diff).toFixed(2)}</span>`;
+}
+function availClass(txt) {
+  if (!txt) return 'unknown';
+  const l = txt.toLowerCase();
+  if (l.includes('in stock') || l.includes('available')) return 'in-stock';
+  if (l.includes('out') || l.includes('unavailable') || l.includes('captcha')) return 'out-stock';
+  return 'unknown';
+}
+
+Chart.defaults.color = '#6b7280';
+Chart.defaults.borderColor = '#1f2229';
+Chart.defaults.font.family = "'Space Mono', monospace";
+Chart.defaults.font.size = 10;
+
+function lineChart(ctx, labels, dataset, color='#f59e0b', fill=true) {
+  return new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets: [{ ...dataset, borderColor: color, backgroundColor: fill ? color+'18':'transparent', borderWidth: 1.5, pointRadius: labels.length > 40 ? 0 : 3, pointBackgroundColor: color, fill, tension: 0.35 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#14161b', borderColor: '#1f2229', borderWidth: 1, titleColor: color, bodyColor: '#c8cdd8' } },
+      scales: { x: { grid: { color: '#1a1d24' }, ticks: { maxTicksLimit: 8, maxRotation: 0 } }, y: { grid: { color: '#1a1d24' } } }
+    }
+  });
+}
+
+// ── Main render ──────────────────────────────────────────────────────────────
+function render() {
+  const root = document.getElementById('app-root');
+
+  if (!DATA || !DATA.listings) {
+    root.innerHTML = `<div class="empty"><strong>No data</strong>Run the scraper first, then refresh.</div>`;
+    return;
+  }
+
+  // Pick ASIN: from URL param, or first available
+  const asin = urlAsin && DATA.listings[urlAsin] ? urlAsin : (DATA.asins && DATA.asins[0]);
+
+  if (!asin || !DATA.listings[asin]) {
+    root.innerHTML = `<div class="empty"><strong>ASIN not found</strong><a href="index.html" style="color:var(--amber)">← Back to all listings</a></div>`;
+    return;
+  }
+
+  const listing = DATA.listings[asin];
+  const records  = listing.records;
+  const non_cap  = records.filter(r => !r.captcha_hit);
+  const latest   = non_cap.length ? non_cap[non_cap.length - 1] : records[records.length - 1];
+
+  document.getElementById('asinBadge').textContent  = asin;
+  document.getElementById('lastUpdated').textContent = 'Updated ' + fmt.dt(DATA.exported_at);
+  document.getElementById('footerCount').textContent = listing.scrape_count + ' scrapes for this ASIN';
+  document.title = `${asin} — Listing Checker`;
+
+  const priceD  = delta(non_cap, 'price');
+  const bsrD    = delta(non_cap, 'bsr_rank');
+  const ratingD = delta(non_cap, 'rating');
+  const countD  = delta(non_cap, 'rating_count');
+
+  const starKeys   = ['stars_5','stars_4','stars_3','stars_2','stars_1'];
+  const starLabels = ['5★','4★','3★','2★','1★'];
+  const starPcts   = starKeys.map(k => latest[k] || 0);
+  const starTotal  = starPcts.reduce((a,b)=>a+b,0) || 1;
+  const starBarsHTML = starKeys.map((k,i) => {
+    const pct = Math.round((starPcts[i]/starTotal)*100);
+    return `<div class="star-row"><span class="star-label">${starLabels[i]}</span><div class="star-track"><div class="star-fill" style="width:${pct}%"></div></div><span class="star-pct">${starPcts[i]??'—'}</span></div>`;
+  }).join('');
+
+  const availTxt = latest.availability || 'Unknown';
+  const availCls = availClass(availTxt);
+  const bullets  = Array.isArray(latest.bullet_points) ? latest.bullet_points : [];
+  const specs    = (typeof latest.tech_specs === 'object' && !Array.isArray(latest.tech_specs)) ? latest.tech_specs : {};
+  const images   = Array.isArray(latest.images) ? latest.images : [];
+  const crumbs   = Array.isArray(latest.breadcrumbs) ? latest.breadcrumbs : [];
+
+  const bulletsHTML = bullets.length
+    ? `<ul class="bullet-list">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`
+    : `<span style="color:var(--dim);font-family:var(--mono);font-size:12px">No bullet points captured</span>`;
+  const specRows = Object.entries(specs).slice(0,20).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  const specsHTML = specRows
+    ? `<table class="spec-table">${specRows}</table>`
+    : `<span style="color:var(--dim);font-family:var(--mono);font-size:12px">No specs captured yet</span>`;
+  const imagesHTML = images.length
+    ? `<div class="image-strip">${images.slice(0,10).map(u=>`<img src="${u}" alt="product" loading="lazy">`).join('')}</div>`
+    : `<span style="color:var(--dim);font-family:var(--mono);font-size:12px">No images captured</span>`;
+  const crumbsHTML = crumbs.length
+    ? `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><span style="font-family:var(--mono);font-size:11px;color:var(--dim)">${crumbs.join(' › ')}</span></div>`
+    : '';
+
+  const logRows = [...records].reverse().slice(0,50).map(r => `
+    <tr>
+      <td>${fmt.dtShort(r.scraped_at)}</td>
+      <td>${r.captcha_hit ? '<span class="tag-captcha">CAPTCHA</span>' : fmt.price(r.price)}</td>
+      <td>${r.rating ?? '—'}</td>
+      <td>${fmt.num(r.rating_count)}</td>
+      <td>${fmt.rank(r.bsr_rank)}</td>
+      <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis">${(r.availability||'').substring(0,40)}</td>
+      <td>${r.prime_eligible ? '<span class="tag-prime">Prime</span>' : '—'}</td>
+      <td style="color:var(--dim)">${(r.sold_by||'').substring(0,30)||'—'}</td>
+    </tr>`).join('');
+
+  root.innerHTML = `
+    <div class="section-label" style="margin-top:28px">Current Snapshot — ${latest.title ? latest.title.substring(0,80) : asin}</div>
+    <div class="kpi-grid">
+      <div class="kpi"><span class="kpi-label">Price</span><span class="kpi-value amber">${fmt.price(latest.price)}</span><span class="kpi-sub">${latest.original_price ? 'Was '+fmt.price(latest.original_price):''}</span>${deltaHTML(priceD,true)}</div>
+      <div class="kpi"><span class="kpi-label">Rating</span><span class="kpi-value">${latest.rating??'—'}</span><span class="kpi-sub">out of 5</span>${deltaHTML(ratingD)}</div>
+      <div class="kpi"><span class="kpi-label">Reviews</span><span class="kpi-value">${fmt.num(latest.rating_count)}</span><span class="kpi-sub">total ratings</span>${deltaHTML(countD)}</div>
+      <div class="kpi"><span class="kpi-label">BSR Rank</span><span class="kpi-value amber">${fmt.rank(latest.bsr_rank)}</span><span class="kpi-sub" style="font-size:10px">${(latest.bsr_category||'').substring(0,30)}</span>${deltaHTML(bsrD,true)}</div>
+      <div class="kpi"><span class="kpi-label">Availability</span><span class="kpi-value" style="font-size:13px;padding-top:6px"><span class="avail-badge ${availCls}"><span class="avail-dot"></span>${availTxt.substring(0,24)}</span></span><span class="kpi-sub">${latest.stock_hint||''}</span></div>
+      <div class="kpi"><span class="kpi-label">Discount</span><span class="kpi-value ${latest.discount_pct>0?'green':''}">${fmt.pct(latest.discount_pct)}</span><span class="kpi-sub">${latest.coupon_text||''}</span></div>
+      <div class="kpi"><span class="kpi-label">Fulfillment</span><span class="kpi-value" style="font-size:13px;padding-top:4px">${latest.prime_eligible?'✓ Prime':'Non-Prime'}</span><span class="kpi-sub">${(latest.sold_by||'').substring(0,30)}</span></div>
+      <div class="kpi"><span class="kpi-label">Scrapes</span><span class="kpi-value">${listing.scrape_count}</span><span class="kpi-sub">data points</span></div>
+    </div>
+
+    <div class="section-label">Historical Trends</div>
+    <div class="charts-grid">
+      <div class="chart-card"><div class="chart-title">Price History</div><div class="chart-subtitle">₹ INR — each point is one scrape</div><div class="chart-container"><canvas id="priceChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Best Sellers Rank</div><div class="chart-subtitle">Lower is better — inverted Y axis</div><div class="chart-container"><canvas id="bsrChart"></canvas></div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><div class="chart-title">Star Rating Over Time</div><div class="chart-subtitle">Average rating trajectory</div><div class="chart-container"><canvas id="ratingChart"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">Review Count Growth</div><div class="chart-subtitle">Total ratings accumulation</div><div class="chart-container"><canvas id="reviewChart"></canvas></div></div>
+    </div>
+
+    <div class="section-label">Product Details</div>
+    <div class="two-col">
+      <div class="info-card">
+        <h3>Rating Breakdown</h3>
+        <div class="star-bars">${starBarsHTML}</div>
+        <div style="margin-top:16px"><div style="font-family:var(--mono);font-size:10px;color:var(--dim);margin-bottom:6px">ANSWERED Q&A</div><span style="font-family:var(--mono);font-size:18px;color:#fff">${fmt.num(latest.answered_questions)}</span></div>
+      </div>
+      <div class="info-card">
+        <h3>Fulfillment Info</h3>
+        <table class="spec-table">
+          <tr><td>Brand</td><td>${latest.brand||'—'}</td></tr>
+          <tr><td>Model</td><td>${latest.model_number||'—'}</td></tr>
+          <tr><td>Sold by</td><td>${latest.sold_by||'—'}</td></tr>
+          <tr><td>Ships from</td><td>${latest.ships_from||'—'}</td></tr>
+          <tr><td>Prime</td><td>${latest.prime_eligible?'Yes':'No'}</td></tr>
+          <tr><td>First Listed</td><td>${latest.date_first_avail||'—'}</td></tr>
+        </table>
+        ${crumbsHTML}
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="info-card"><h3>Key Features</h3>${bulletsHTML}</div>
+      <div class="info-card"><h3>Product Images</h3>${imagesHTML}</div>
+    </div>
+    <div class="info-card" style="margin-bottom:16px"><h3>Technical Specifications</h3>${specsHTML}</div>
+
+    <div class="section-label">Scrape Log</div>
+    <div class="info-card">
+      <h3>Last 50 Records <span style="font-weight:400;color:var(--dim);font-size:11px">(newest first)</span></h3>
+      <div class="log-wrap">
+        <table class="log-table">
+          <thead><tr><th>Scraped At</th><th>Price</th><th>Rating</th><th>Reviews</th><th>BSR</th><th>Availability</th><th>Prime</th><th>Sold By</th></tr></thead>
+          <tbody>${logRows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  // ── Charts ──
+  const valid  = non_cap.filter(r => r.scraped_at);
+  const labels = valid.map(r => fmt.dtShort(r.scraped_at));
+
+  lineChart(document.getElementById('priceChart'), labels, { label: 'Price (₹)', data: valid.map(r => r.price) }, '#f59e0b');
+
+  new Chart(document.getElementById('bsrChart'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: 'BSR Rank', data: valid.map(r => r.bsr_rank), borderColor: '#3b82f6', backgroundColor: '#3b82f618', borderWidth: 1.5, pointRadius: labels.length > 40 ? 0 : 3, pointBackgroundColor: '#3b82f6', fill: true, tension: 0.35 }] },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#14161b', borderColor: '#1f2229', borderWidth: 1, titleColor: '#3b82f6', bodyColor: '#c8cdd8' } }, scales: { x: { grid: { color: '#1a1d24' }, ticks: { maxTicksLimit: 8, maxRotation: 0 } }, y: { grid: { color: '#1a1d24' }, reverse: true } } }
+  });
+
+  lineChart(document.getElementById('ratingChart'), labels, { label: 'Rating', data: valid.map(r => r.rating) }, '#22c55e');
+  lineChart(document.getElementById('reviewChart'), labels, { label: 'Reviews', data: valid.map(r => r.rating_count) }, '#a78bfa');
+}
+
+render();
+</script>
+</body>
+</html>
