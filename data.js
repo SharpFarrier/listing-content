@@ -1,5 +1,5 @@
 const LISTING_DATA = {
-  "exported_at": "2026-03-23T05:02:39.085011+00:00",
+  "exported_at": "2026-03-23T05:04:19.676342+00:00",
   "asins": [
     "B0FS1VQ17L",
     "B0FTZGCPKN",
@@ -2376,7 +2376,7 @@ const LISTING_DATA = {
       ]
     },
     "B0GPKRFFXQ": {
-      "scrape_count": 1,
+      "scrape_count": 2,
       "records": [
         {
           "id": 10,
@@ -2449,6 +2449,92 @@ const LISTING_DATA = {
             "Packer": "info@honeytouch.co",
             "Generic Name": "Desk",
             "Best Sellers Rank": "#32,004 in Home & Kitchen (See Top 100 in Home & Kitchen)#106 inDesks"
+          },
+          "breadcrumbs": [
+            "Home & Kitchen",
+            "Furniture",
+            "Study & Home Office Furniture",
+            "Desks & Workstations",
+            "Desks"
+          ],
+          "date_first_avail": "",
+          "answered_questions": null,
+          "captcha_hit": 0
+        },
+        {
+          "id": 35,
+          "asin": "B0GPKRFFXQ",
+          "scraped_at": "2026-03-23T05:04:19.157246+00:00",
+          "title": "Honey Touch Duke Metal & Wood Workstation Desk | 1200mm x 600mm Top Size | 122 x 61 x 73 cm (L x W x H) | Modern Computer Table for Home Office & Work from Home | Heavy Duty Study Desk",
+          "brand": "Honey Touch",
+          "model_number": "",
+          "price": 6299.0,
+          "price_currency": "INR",
+          "original_price": 9000.0,
+          "discount_pct": 30.0,
+          "coupon_text": "",
+          "rating": null,
+          "rating_count": 6,
+          "stars_5": null,
+          "stars_4": null,
+          "stars_3": null,
+          "stars_2": null,
+          "stars_1": null,
+          "availability": "In stock",
+          "stock_hint": "",
+          "sold_by": "Sabi Wabi Ventures Pvt Ltd",
+          "ships_from": "",
+          "prime_eligible": 0,
+          "bsr_category": "",
+          "bsr_rank": null,
+          "bsr_raw": "",
+          "bullet_points": [
+            "Modern Minimal Design – Sleek and clean design that fits perfectly in any home or office space. The metal and wood combination gives a premium and clutter-free look, ideal for work from home or study setup.",
+            "Strong Metal Frame with Engineered Wood Top – Built with a heavy-duty steel frame and scratch-resistant engineered wood surface for long-lasting durability and stability. Smooth finish helps resist daily wear and stains.",
+            "Strong Metal Frame with Engineered Wood Top – Built with a heavy-duty steel frame and scratch-resistant engineered wood surface for long-lasting durability and stability. Smooth finish helps resist daily wear and stains.",
+            "Perfect for WFH & Office Use - Designed to support productivity and comfort, this desk’s ideal height and wide surface make it perfect for long work-from-home hours, video calls, or creative projects.",
+            "Suitable for Home and Office Use – Designed with comfortable height and wide working area, making it ideal for long working hours, studying, writing, or gaming.",
+            "Easy to Assemble and Maintain – Comes with required hardware and instructions for quick installation. Smooth surface is easy to clean with a soft cloth.",
+            "Purchase with confidence - We offer excellent customer service. If you have any questions before, during, or after your purchase, please contact us via our support email or Amazon buyer message; we are here to help."
+          ],
+          "images": [
+            "https://m.media-amazon.com/images/I/91x+aGuLmQL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/71KCznkuzbL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/711fcq6m2fL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/81AS0UBFHxL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/817O5KNPbgL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/71KCdZIb0GL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/91nKiw4abuL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/718QC8JVcZL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/81ePoBgdriL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/91PgJsgPThL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/91MH5A0M07L._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/91DrBubymRL._SL1500_.jpg",
+            "https://m.media-amazon.com/images/I/91Rui1SQR3L._SL1500_.jpg"
+          ],
+          "variants": [],
+          "tech_specs": {
+            "Shape": "Rectangular",
+            "Colour": "White",
+            "Style": "Minimalist",
+            "Finish Types": "Powder Coated",
+            "Brand": "Honey Touch",
+            "Included Components": "Instruction Manual",
+            "Model number": "HT-DU",
+            "Model Name": "Duke",
+            "Country of Origin": "India",
+            "Manufacturer": "Honey Touch",
+            "Bed Type": "Desk",
+            "Packer Contact Information": "info@honeytouch.co",
+            "Best Sellers Rank": "#48,574 in Home & Kitchen (See Top 100 in Home & Kitchen)#142 inDesks",
+            "ASIN": "B0GPKRFFXQ",
+            "Customer Reviews": "3.93.9 out of 5 stars(6)3.9 out of 5 stars",
+            "Item Dimensions D x W x H": "61D x 122W x 73H Centimeters",
+            "Item Weight": "15 Kilograms",
+            "Bed Size": "Natural Ash",
+            "Item Dimensions": "61 x 122 x 73 Centimeters",
+            "Wood Type": "Metal",
+            "Is Assembly Required?": "Yes"
           },
           "breadcrumbs": [
             "Home & Kitchen",
